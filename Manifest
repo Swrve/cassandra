@@ -19,6 +19,12 @@ lib/cassandra/0.7/column_family.rb
 lib/cassandra/0.7/columns.rb
 lib/cassandra/0.7/keyspace.rb
 lib/cassandra/0.7/protocol.rb
+lib/cassandra/0.8.rb
+lib/cassandra/0.8/cassandra.rb
+lib/cassandra/0.8/column_family.rb
+lib/cassandra/0.8/columns.rb
+lib/cassandra/0.8/keyspace.rb
+lib/cassandra/0.8/protocol.rb
 lib/cassandra/array.rb
 lib/cassandra/cassandra.rb
 lib/cassandra/columns.rb
@@ -41,5 +47,8 @@ vendor/0.6/gen-rb/cassandra.rb
 vendor/0.6/gen-rb/cassandra_constants.rb
 vendor/0.6/gen-rb/cassandra_types.rb
 vendor/0.7/gen-rb/cassandra.rb
+vendor/0.7/gen-rb/cassandra.rb
 vendor/0.7/gen-rb/cassandra_constants.rb
-vendor/0.7/gen-rb/cassandra_types.rb
+vendor/0.8/gen-rb/cassandra_types.rb
+vendor/0.8/gen-rb/cassandra_constants.rb
+vendor/0.8/gen-rb/cassandra_types.rb

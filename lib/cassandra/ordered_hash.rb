@@ -141,6 +141,12 @@ class Cassandra
       super
     end
 
+    def self.[](*args)
+      newHash = super
+      newHash.send(:set_default_timestamps)
+      newHash
+    end
+
     def initialize_copy(other)
       @timestamps = other.timestamps
       super
@@ -157,15 +163,27 @@ class Cassandra
     end
 
     def delete_if
-      @timestamps.delete_if
+      @timestamps.delete_if{|k,v| yield(k,v)}
       super
+    end
+
+    def reject(&block)
+      dup.reject!(&block)
     end
 
     def reject!
-      @timestamps.reject!
+      @timestamps.reject!{|k,v| yield(k,v)}
       super
     end
 
+      def merge!(other_hash)
+        other_hash.each {|k,v| self[k] = v }
+        self
+      end
+
+      def merge(other_hash)
+        dup.merge!(other_hash)
+      end
     def timestamps
       @timestamps.dup
     end
@@ -191,10 +209,12 @@ class Cassandra
     end
 
   private
-
-    def sync_keys!
-      @timestamps.delete_if {|k,v| !has_key?(k)}
-      super
+    def timestamps=(timestamp_value)
+      @timestamps = timestamp_value
+    end
+    def set_default_timestamps()
+      @timestamps = Hash.new
+      self.keys.each{|k| @timestamps[k] = nil}
     end
   end
 end
