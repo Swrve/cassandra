@@ -98,17 +98,19 @@ class CassandraTest < Test::Unit::TestCase
   end
 
   def test_get_value
-    @twitter.insert(:Statuses, key, {'body' => 'v'})
-    assert_equal 'v', @twitter.get(:Statuses, key, 'body')
-    assert_nil @twitter.get(:Statuses, 'bogus', 'body')
+    col_val_pair = {'body' => 'v'}
+    @twitter.insert(:Statuses, key, col_val_pair)
+    assert_equal col_val_pair, @twitter.get(:Statuses, key, 'body')
+    assert_equal @twitter.get(:Statuses, 'bogus', 'body').length, 0
 
     assert @twitter.exists?(:Statuses, key, 'body')
     assert !@twitter.exists?(:Statuses, 'bogus', 'body')
   end
 
   def test_get_value_with_range
+    function_name = key
     10.times do |i|
-      @twitter.insert(:Statuses, key, {"body-#{i}" => 'v'})
+      @twitter.insert(:Statuses, function_name, {"body-#{i}" => 'v'})
     end
 
     assert_equal 5, @twitter.get(:Statuses, key, :count => 5).length
@@ -188,8 +190,8 @@ class CassandraTest < Test::Unit::TestCase
   def test_get_super_value
     columns = {@uuids[1] => 'v1'}
     @twitter.insert(:StatusRelationships, key, {'user_timelines' => columns})
-    assert_equal('v1', @twitter.get(:StatusRelationships, key, 'user_timelines', columns.keys.first))
-    assert_nil @twitter.get(:StatusRelationships, 'bogus', 'user_timelines', columns.keys.first)
+    assert_equal(columns, @twitter.get(:StatusRelationships, key, 'user_timelines', columns.keys.first))
+    assert_equal @twitter.get(:StatusRelationships, 'bogus', 'user_timelines', columns.keys.first).length, 0
   end
 
 
@@ -240,7 +242,7 @@ class CassandraTest < Test::Unit::TestCase
   def test_remove_value
     @twitter.insert(:Statuses, key, {'body' => 'v'})
     @twitter.remove(:Statuses, key, 'body')
-    assert_nil @twitter.get(:Statuses, key, 'body')
+    assert_equal @twitter.get(:Statuses, key, 'body').length, 0
     assert_nil @twitter.get(:Statuses, key).timestamps['body']
   end
 
@@ -260,7 +262,7 @@ class CassandraTest < Test::Unit::TestCase
     columns = {@uuids[1] => 'v1'}
     @twitter.insert(:StatusRelationships, key, {'user_timelines' => columns})
     @twitter.remove(:StatusRelationships, key, 'user_timelines', columns.keys.first)
-    assert_nil @twitter.get(:StatusRelationships, key, 'user_timelines', columns.keys.first)
+    assert_equal @twitter.get(:StatusRelationships, key, 'user_timelines', columns.keys.first).length, 0
     assert_nil @twitter.get(:StatusRelationships, key, 'user_timelines').timestamps[columns.keys.first]
   end
 
