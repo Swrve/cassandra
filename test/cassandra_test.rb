@@ -4,6 +4,10 @@ def cassandra06?
   CassandraThrift::VERSION == '2.1.0'
 end
 
+def cassandra08?
+  !cassandra06? and CassandraThrift::VERSION != '19.4.0'
+end
+
 class CassandraTest < Test::Unit::TestCase
   include Cassandra::Constants
 
@@ -449,6 +453,14 @@ class CassandraTest < Test::Unit::TestCase
       assert_equal(1,      indexed_row.length)
       assert_equal('row2', indexed_row.first.key)
       assert_not_nil @twitter.drop_index('Twitter', 'Statuses', 'x')
+    end
+  end
+
+  if cassandra08?
+    def test_adding_getting_value_in_counter
+      assert_nil @twitter.add(:UserCounters, 'bob', 5, 'tweet_count')
+      assert_equal({'tweet_count' => 5}, @twitter.get_counter(:UserCounters, 'bob', 'tweet_count'))
+      assert_equal({}, @twitter.get_counter(:UserCounters, 'bogus', 'tweet_count'))
     end
   end
 
