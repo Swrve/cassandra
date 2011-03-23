@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/test_helper')
 
-def cassandra07?
-  CassandraThrift::VERSION != '2.1.0'
+def cassandra06?
+  CassandraThrift::VERSION == '2.1.0'
 end
 
 class CassandraTest < Test::Unit::TestCase
@@ -423,7 +423,7 @@ class CassandraTest < Test::Unit::TestCase
     @twitter.insert(:Statuses, key, { 'body' => '1' })
   end
 
-  if cassandra07?
+  unless cassandra06?
     def test_creating_and_dropping_new_index
       @twitter.create_index('Twitter', 'Statuses', 'column_name', 'LongType')
       assert_nil @twitter.create_index('Twitter', 'Statuses', 'column_name', 'LongType')
