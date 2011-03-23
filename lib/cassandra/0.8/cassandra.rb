@@ -235,6 +235,18 @@ class Cassandra
       :expressions => idx_expressions)
   end
 
+  #Atomic counters
+  # Add a value to the counter in cf:key:super column:column
+  def add(column_family, key, value, *columns_and_options)
+    column_family, column, sub_column, _ = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
+    _add(column_family, key, column, sub_column, value)
+  end
+
+  def get_counter(column_family, key, *columns_and_options)
+    column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
+    _get_counter(column_family, key, column, sub_column, options[:consistency])
+  end
+
   # TODO: Supercolumn support.
   def get_indexed_slices(column_family, idx_clause, *columns_and_options)
     column_family, columns, _, options =

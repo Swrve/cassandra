@@ -12,6 +12,32 @@ class Cassandra
       client.remove(key, column_path, timestamp, consistency_level)
     end
 
+    def _add(column_family, key, column, sub_column, value)
+      if is_super(column_family)
+        column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => column)
+        counter_column = CassandraThrift::CounterColumn.new(:name => sub_column, :value => value)
+      else
+        column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family)
+        counter_column = CassandraThrift::CounterColumn.new(:name => column, :value => value)
+      end
+      client.add(key, column_parent, counter_column, Consistency::ONE)
+    end
+
+    def _get_counter(column_family, key, column, sub_column, consistency)
+      args = {:column_family => column_family}
+      columns = is_super(column_family) ? {:super_column => column, :column => sub_column} : {:column => column}
+      column_path = CassandraThrift::ColumnPath.new(args.merge(columns))
+
+      begin
+        result = client.get_counter(key, column_path, consistency)
+        processed_result = {result.column.name => result.column.value}
+        return {result.super_column => processed_result } if is_super(column_family)
+        return processed_result
+      rescue CassandraThrift::NotFoundException
+        return {}
+      end
+    end
+
     def _count_columns(column_family, key, super_column, consistency)
       client.get_count(key,
         CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => super_column),
