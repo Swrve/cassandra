@@ -12,7 +12,7 @@ class Cassandra
       client.remove(key, column_path, timestamp, consistency_level)
     end
 
-    def _add(column_family, key, column, sub_column, value)
+    def _add(column_family, key, column, sub_column, value, consistency)
       if is_super(column_family)
         column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => column)
         counter_column = CassandraThrift::CounterColumn.new(:name => sub_column, :value => value)
@@ -20,7 +20,7 @@ class Cassandra
         column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family)
         counter_column = CassandraThrift::CounterColumn.new(:name => column, :value => value)
       end
-      client.add(key, column_parent, counter_column, Consistency::ONE)
+      client.add(key, column_parent, counter_column, consistency)
     end
 
     def _get_counter(column_family, key, column, sub_column, consistency)
