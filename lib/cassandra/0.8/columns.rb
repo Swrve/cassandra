@@ -30,7 +30,7 @@ class Cassandra
         :column_or_supercolumn => CassandraThrift::ColumnOrSuperColumn.new(
           :column => CassandraThrift::Column.new(
             :name      => column_name_class(column_family).new(column_name).to_s,
-            :value     => value,
+            :value     => value.to_s,
             :timestamp => timestamp,
             :ttl       => ttl
           )
