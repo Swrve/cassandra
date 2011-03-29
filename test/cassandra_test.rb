@@ -465,6 +465,61 @@ class CassandraTest < Test::Unit::TestCase
     end
   end
 
+  def test_each_key
+    num_users = rand(60)
+    num_users.times do |twit_counter|
+      @twitter.insert(:Users, "Twitter : #{twit_counter}", {'body' => 'v1', 'user' => 'v1'})
+    end
+    counter = 0
+    @twitter.each_key(:Users) do |row|
+      counter += 1
+    end
+    assert_equal num_users, counter
+  end
+
+  def test_each_key_with_column_predicate
+    num_users = rand(60)
+    num_users.times do |twit_counter|
+      @twitter.insert(:Users, "Twitter : #{twit_counter}", {'body' => 'v1', 'user' => 'v1'})
+    end
+    counter = 0
+    @twitter.each_key(:Users, 10, :start => 'body', :finish => 'body') do |row|
+      assert_equal 1, row.columns.length
+      counter += 1
+    end
+    assert_equal num_users, counter
+  end
+
+  def test_each_key_with_super_column
+    num_users = rand(50)
+    block_name = key
+    num_users.times do |twit_counter|
+      @twitter.insert(:StatusRelationships, block_name + twit_counter.to_s, {
+      'user_timelines' => {@uuids[1] => 'v1', @uuids[2] => 'v2'},
+      'mentions_timelines' => {@uuids[3] => 'v3'}})
+    end
+
+    counter = 0
+    # Restrict to one super column ::
+    @twitter.each_key(:StatusRelationships, 10, :start => 'user_timelines', :finish => 'user_timelines') do |row|
+      row.columns.each do |columnorsupercolumn|
+          super_column = columnorsupercolumn.super_column
+          assert_equal 2, super_column.columns.count
+      end
+      counter += 1
+    end
+
+    #Both super columns
+    @twitter.each_key(:StatusRelationships, 10, :start => 'mentions_timelines', :finish => 'user_timelines') do |row|
+      assert_equal 2, row.columns.length
+      counter += 1
+    end
+
+    assert_equal num_users*2, counter
+
+  end
+
+
   private
 
   def key
