@@ -247,6 +247,16 @@ class Cassandra
     _get_counter(column_family, key, column, sub_column, options[:consistency])
   end
 
+  def get_counter_slice(column_family, key, *columns_and_options)
+    column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, READ_DEFAULTS)
+    results = {}
+    _get_counter_slice(column_family, key, column, options[:start], options[:finish], options[:consistency]).map do |counter|
+      c = counter.column.nil? ? counter.super_column : counter.column
+      results[c.name] = c.value
+    end
+    results
+  end
+
   # TODO: Supercolumn support.
   def get_indexed_slices(column_family, idx_clause, *columns_and_options)
     column_family, columns, _, options =

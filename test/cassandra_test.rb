@@ -460,6 +460,7 @@ class CassandraTest < Test::Unit::TestCase
     def test_adding_getting_value_in_counter
       assert_nil @twitter.add(:UserCounters, 'bob', 5, 'tweet_count')
       assert_equal({'tweet_count' => 5}, @twitter.get_counter(:UserCounters, 'bob', 'tweet_count'))
+      assert_equal({'tweet_count' => 5}, @twitter.get_counter_slice(:UserCounters, 'bob', :start => "tweet_count", :finish => "tweet_count"))
       assert_equal({}, @twitter.get_counter(:UserCounters, 'bogus', 'tweet_count'))
     end
   end
