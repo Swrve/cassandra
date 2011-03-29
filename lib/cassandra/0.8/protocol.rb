@@ -128,11 +128,24 @@ class Cassandra
       client.get_indexed_slices(column_parent, idx_clause, predicate, consistency)
     end
 
-    def each_key(column_family)
+  def _each_key(column_family, batch_size = 2, options)
+      batch_size = 2 if batch_size < 2
       column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family.to_s)
-      predicate = CassandraThrift::SlicePredicate.new(:column_names => [])
-      range = CassandraThrift::KeyRange.new(:start_key => '', :end_key => '')
-      client.get_range_slices(column_parent, predicate, range, 1).each{|i| yield i.key }
+      predicate = nil
+      if not options[:start].nil? or not options[:finish].nil?
+        slice_range = CassandraThrift::SliceRange.new(:start => options[:start], :finish => options[:finish])
+        predicate = CassandraThrift::SlicePredicate.new(:slice_range => slice_range)
+      end
+      predicate = predicate || CassandraThrift::SlicePredicate.new(:column_names => []) #default predicate
+      predicate
+      position = ''
+      begin
+        range = CassandraThrift::KeyRange.new(:start_key => position, :end_key => '', :count => batch_size)
+        results_returned = client.get_range_slices(column_parent, predicate, range, 1)
+        results_returned = results_returned.drop(1) if position != '' # get_range slices with start key's is range inclusive, remove the first one here
+        results_returned.each{|i| yield i }
+        position = results_returned.last.key unless results_returned.length == 0
+      end while results_returned.length > 0
     end
   end
 end
