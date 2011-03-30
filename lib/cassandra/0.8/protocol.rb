@@ -30,11 +30,9 @@ class Cassandra
 
       begin
         result = client.get_counter(key, column_path, consistency)
-        processed_result = {result.column.name => result.column.value}
-        return {result.super_column => processed_result } if is_super(column_family)
-        return processed_result
+        return result.column.value
       rescue CassandraThrift::NotFoundException
-        return {}
+        return 0
       end
     end
 
