@@ -5,7 +5,7 @@ def cassandra06?
 end
 
 def cassandra08?
-  !cassandra06? and CassandraThrift::VERSION != '19.4.0'
+  CassandraThrift::VERSION == '19.4.0'
 end
 
 class CassandraTest < Test::Unit::TestCase
