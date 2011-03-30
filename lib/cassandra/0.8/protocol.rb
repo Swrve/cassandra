@@ -38,6 +38,17 @@ class Cassandra
       end
     end
 
+    def _get_counter_slice(column_family, key, column, start, finish, consistency)
+      if is_super(column_family)
+        column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => column)
+      else
+        column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family)
+      end
+
+      slice_pred = CassandraThrift::SlicePredicate.new(:slice_range => CassandraThrift::SliceRange.new(:start => start, :finish => finish))
+      client.get_counter_slice(key, column_parent, slice_pred, consistency)
+    end
+
     def _count_columns(column_family, key, super_column, consistency)
       client.get_count(key,
         CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => super_column),
