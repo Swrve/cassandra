@@ -235,13 +235,14 @@ class Cassandra
       :expressions => idx_expressions)
   end
 
-  #Atomic counters
+  # Atomic counters
   # Add a value to the counter in cf:key:super column:column
   def add(column_family, key, value, *columns_and_options)
     column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
     _add(column_family, key, column, sub_column, value, options[:consistency])
   end
 
+	# Get the value stored in a counter
   def get_counter(column_family, key, *columns_and_options)
     column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
     _get_counter(column_family, key, column, sub_column, options[:consistency])
