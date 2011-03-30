@@ -258,7 +258,8 @@ class Cassandra
 
    def each_key(column_family, batch_size = 10, *columns_and_options, &block)
      column_family, _, _, options = extract_and_validate_params(column_family, [], columns_and_options, READ_DEFAULTS)
-    _each_key(column_family, batch_size, options, &block)
+      _each_key(column_family, batch_size, options, &block)
+
    end
 
   protected

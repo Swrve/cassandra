@@ -143,7 +143,7 @@ class Cassandra
         range = CassandraThrift::KeyRange.new(:start_key => position, :end_key => '', :count => batch_size)
         results_returned = client.get_range_slices(column_parent, predicate, range, 1)
         results_returned = results_returned.drop(1) if position != '' # get_range slices with start key's is range inclusive, remove the first one here
-        results_returned.each{|i| yield i }
+        results_returned.each { |i| yield key_slice_to_hash(column_family, i) }
         position = results_returned.last.key unless results_returned.length == 0
       end while results_returned.length > 0
     end

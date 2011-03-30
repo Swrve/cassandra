@@ -60,6 +60,12 @@ class Cassandra
       columns_to_hash_for_classes(columns, sub_column_name_class(column_family))
     end
 
+    def key_slice_to_hash(column_family, keyslice)
+      key = keyslice.key
+      columns = keyslice.columns
+      return key, columns_to_hash(column_family, columns)
+    end
+
     def columns_to_hash_for_classes(columns, column_name_class, sub_column_name_class = nil)
       hash = OrderedHash.new
       Array(columns).each do |c|

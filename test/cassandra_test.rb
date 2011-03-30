@@ -21,6 +21,9 @@ class CassandraTest < Test::Unit::TestCase
     @blogs_long = Cassandra.new('MultiblogLong')
     @blogs_long.clear_keyspace!
 
+    @type_conversions = Cassandra.new('TypeConversions')
+    @type_conversions.clear_keyspace!
+
     @uuids = (0..6).map {|i| SimpleUUID::UUID.new(Time.at(2**(24+i))) }
     @longs = (0..6).map {|i| Long.new(Time.at(2**(24+i))) }
   end
@@ -470,7 +473,7 @@ class CassandraTest < Test::Unit::TestCase
       @twitter.insert(:Users, "Twitter : #{twit_counter}", {'body' => 'v1', 'user' => 'v1'})
     end
     counter = 0
-    @twitter.each_key(:Users) do |row|
+    @twitter.each_key(:Users) do |_, _|
       counter += 1
     end
     assert_equal num_users, counter
@@ -482,8 +485,8 @@ class CassandraTest < Test::Unit::TestCase
       @twitter.insert(:Users, "Twitter : #{twit_counter}", {'body' => 'v1', 'user' => 'v1'})
     end
     counter = 0
-    @twitter.each_key(:Users, 10, :start => 'body', :finish => 'body') do |row|
-      assert_equal 1, row.columns.length
+    @twitter.each_key(:Users, 10, :start => 'body', :finish => 'body') do |key, columns|
+      assert_equal 1, columns.length
       counter += 1
     end
     assert_equal num_users, counter
@@ -500,17 +503,16 @@ class CassandraTest < Test::Unit::TestCase
 
     counter = 0
     # Restrict to one super column ::
-    @twitter.each_key(:StatusRelationships, 10, :start => 'user_timelines', :finish => 'user_timelines') do |row|
-      row.columns.each do |columnorsupercolumn|
-          super_column = columnorsupercolumn.super_column
-          assert_equal 2, super_column.columns.count
+    @twitter.each_key(:StatusRelationships, 10, :start => 'user_timelines', :finish => 'user_timelines') do |key, columns|
+      columns.each do |_, column_value|
+          assert_equal 2, column_value.length
       end
       counter += 1
     end
 
     #Both super columns
-    @twitter.each_key(:StatusRelationships, 10, :start => 'mentions_timelines', :finish => 'user_timelines') do |row|
-      assert_equal 2, row.columns.length
+    @twitter.each_key(:StatusRelationships, 10, :start => 'mentions_timelines', :finish => 'user_timelines') do |key,columns|
+      assert_equal 2, columns.length
       counter += 1
     end
 
@@ -518,6 +520,18 @@ class CassandraTest < Test::Unit::TestCase
 
   end
 
+  def test_each_key_column_types
+    num_users = rand(60)
+    num_users.times do |twit_counter|
+      @type_conversions.insert(:UUIDColumnConversion, twit_counter.to_s, {@uuids[1] => 'v1'})
+    end
+    counter = 0
+     @type_conversions.each_key(:UUIDColumnConversion) do |_, columns|
+      counter += 1
+      columns.keys.each {|column_name| assert_equal SimpleUUID::UUID, column_name.class}
+    end
+    assert_equal num_users, counter
+  end
 
   private
 
