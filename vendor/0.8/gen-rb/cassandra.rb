@@ -284,7 +284,7 @@ require 'cassandra_constants'
             result = receive_message(Get_counter_result)
             return result.success unless result.success.nil?
             raise result.ire unless result.ire.nil?
-            raise result.nfe unless result.nfe.nil?
+            return nil unless result.nfe.nil?
             raise result.ue unless result.ue.nil?
             raise result.te unless result.te.nil?
             raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_counter failed: unknown result')

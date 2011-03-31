@@ -30,6 +30,7 @@ class Cassandra
 
       begin
         result = client.get_counter(key, column_path, consistency)
+        return 0 if not result
         return result.column.value
       rescue CassandraThrift::NotFoundException
         return 0
