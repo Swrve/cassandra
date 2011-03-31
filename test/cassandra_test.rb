@@ -5,7 +5,7 @@ def cassandra06?
 end
 
 def cassandra08?
-  !cassandra06? and CassandraThrift::VERSION != '19.4.0'
+  CassandraThrift::VERSION == '19.4.0'
 end
 
 class CassandraTest < Test::Unit::TestCase
@@ -462,9 +462,9 @@ class CassandraTest < Test::Unit::TestCase
   if cassandra08?
     def test_adding_getting_value_in_counter
       assert_nil @twitter.add(:UserCounters, 'bob', 5, 'tweet_count')
-      assert_equal({'tweet_count' => 5}, @twitter.get_counter(:UserCounters, 'bob', 'tweet_count'))
+      assert_equal(5, @twitter.get_counter(:UserCounters, 'bob', 'tweet_count'))
       assert_equal({'tweet_count' => 5}, @twitter.get_counter_slice(:UserCounters, 'bob', :start => "tweet_count", :finish => "tweet_count"))
-      assert_equal({}, @twitter.get_counter(:UserCounters, 'bogus', 'tweet_count'))
+      assert_equal(0, @twitter.get_counter(:UserCounters, 'bogus', 'tweet_count'))
     end
   end
 

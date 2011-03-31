@@ -30,11 +30,9 @@ class Cassandra
 
       begin
         result = client.get_counter(key, column_path, consistency)
-        processed_result = {result.column.name => result.column.value}
-        return {result.super_column => processed_result } if is_super(column_family)
-        return processed_result
+        return result.column.value
       rescue CassandraThrift::NotFoundException
-        return {}
+        return 0
       end
     end
 
@@ -143,7 +141,7 @@ class Cassandra
       batch_size = 2 if batch_size < 2
       column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family.to_s)
       predicate = nil
-      if not options[:start].nil? or not options[:finish].nil?
+      if not options[:start].nil? or not options[:finish].nil? or not options[:count].nil?
         slice_range = CassandraThrift::SliceRange.new(:start => options[:start], :finish => options[:finish], :count => options[:count])
         predicate = CassandraThrift::SlicePredicate.new(:slice_range => slice_range)
       end
