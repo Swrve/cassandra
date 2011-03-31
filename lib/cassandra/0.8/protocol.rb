@@ -144,7 +144,7 @@ class Cassandra
       column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family.to_s)
       predicate = nil
       if not options[:start].nil? or not options[:finish].nil?
-        slice_range = CassandraThrift::SliceRange.new(:start => options[:start], :finish => options[:finish])
+        slice_range = CassandraThrift::SliceRange.new(:start => options[:start], :finish => options[:finish], :count => options[:count])
         predicate = CassandraThrift::SlicePredicate.new(:slice_range => slice_range)
       end
       predicate = predicate || CassandraThrift::SlicePredicate.new(:column_names => []) #default predicate
