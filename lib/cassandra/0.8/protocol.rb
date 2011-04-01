@@ -23,20 +23,6 @@ class Cassandra
       client.add(key, column_parent, counter_column, consistency)
     end
 
-    def _get_counter(column_family, key, column, sub_column, consistency)
-      args = {:column_family => column_family}
-      columns = is_super(column_family) ? {:super_column => column, :column => sub_column} : {:column => column}
-      column_path = CassandraThrift::ColumnPath.new(args.merge(columns))
-
-      begin
-        result = client.get_counter(key, column_path, consistency)
-        return 0 if not result
-        return result.column.value
-      rescue CassandraThrift::NotFoundException
-        return 0
-      end
-    end
-
     def _get_counter_slice(column_family, key, column, start, finish, consistency)
       if is_super(column_family)
         column_parent = CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => column)
@@ -54,6 +40,32 @@ class Cassandra
         CassandraThrift::SlicePredicate.new(:slice_range => CassandraThrift::SliceRange.new(:start => '', :finish => '')),
         consistency
       )
+    end
+
+    def _get_counter_columns(column_family, key, columns, sub_columns, consistency)
+      result = if is_super(column_family)
+                 if sub_columns
+                   columns_to_hash(column_family,
+                                   client.get_counter_slice(key,
+                                                            CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => columns),
+                                                            CassandraThrift::SlicePredicate.new(:column_names => sub_columns),
+                                                            consistency))
+                 else
+                   columns_to_hash(column_family,
+                                   client.get_counter_slice(key,
+                                                            CassandraThrift::ColumnParent.new(:column_family => column_family),
+                                                            CassandraThrift::SlicePredicate.new(:column_names => columns),
+                                                            consistency))
+                 end
+               else
+                 thrift_cmd = client.get_counter_slice(key,
+                                                       CassandraThrift::ColumnParent.new(:column_family => column_family),
+                                                       CassandraThrift::SlicePredicate.new(:column_names => columns),
+                                                       consistency)
+                 columns_to_hash(column_family, thrift_cmd)
+               end
+      klass = column_name_class(column_family)
+      (sub_columns || columns).map { |name| result[klass.new(name)] || 0 }
     end
 
     def _get_columns(column_family, key, columns, sub_columns, consistency)

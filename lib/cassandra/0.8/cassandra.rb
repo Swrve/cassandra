@@ -244,8 +244,13 @@ class Cassandra
 
 	# Get the value stored in a counter
   def get_counter(column_family, key, *columns_and_options)
-    column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
-    _get_counter(column_family, key, column, sub_column, options[:consistency])
+    get_counter_columns(column_family, key, columns_and_options)[0]
+  end
+
+  def get_counter_columns(column_family, key, *columns_and_options)
+    column_family, columns, sub_columns, options =
+    extract_and_validate_params(column_family, key, columns_and_options, READ_DEFAULTS)
+    _get_counter_columns(column_family, key, columns, sub_columns, options[:consistency])
   end
 
   def get_counter_slice(column_family, key, *columns_and_options)
