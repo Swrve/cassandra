@@ -479,6 +479,13 @@ class CassandraTest < Test::Unit::TestCase
       assert_equal([5, 7], @twitter.get_counter_columns(:UserCounters, 'bob', ['tweet_count', 'follower_count']))
       assert_equal([5, 7, 0], @twitter.get_counter_columns(:UserCounters, 'bob', ['tweet_count', 'follower_count', 'bogus']))
     end
+    
+    def test_adding_getting_value_in_multiple_counters_with_super_columns
+      assert_nil @twitter.add(:UserCounterAggregates, 'bob', 1, 'DAU', 'today')
+      assert_nil @twitter.add(:UserCounterAggregates, 'bob', 2, 'DAU', 'tomorrow')
+      assert_equal(1, @twitter.get_counter(:UserCounterAggregates, 'bob', 'DAU', 'today'))
+      assert_equal(2, @twitter.get_counter(:UserCounterAggregates, 'bob', 'DAU', 'tomorrow'))
+    end
   end
 
   def test_each_key
