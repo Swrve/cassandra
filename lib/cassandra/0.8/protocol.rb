@@ -31,7 +31,7 @@ class Cassandra
       end
 
       slice_pred = CassandraThrift::SlicePredicate.new(:slice_range => CassandraThrift::SliceRange.new(:start => start, :finish => finish))
-      client.get_counter_slice(key, column_parent, slice_pred, consistency)
+      client.get_slice(key, column_parent, slice_pred, consistency)
     end
 
     def _count_columns(column_family, key, super_column, consistency)
@@ -46,19 +46,19 @@ class Cassandra
       result = if is_super(column_family)
                  if sub_columns
                    columns_to_hash(column_family,
-                                   client.get_counter_slice(key,
+                                   client.get_slice(key,
                                                             CassandraThrift::ColumnParent.new(:column_family => column_family, :super_column => columns),
                                                             CassandraThrift::SlicePredicate.new(:column_names => sub_columns),
                                                             consistency))
                  else
                    columns_to_hash(column_family,
-                                   client.get_counter_slice(key,
+                                   client.get_slice(key,
                                                             CassandraThrift::ColumnParent.new(:column_family => column_family),
                                                             CassandraThrift::SlicePredicate.new(:column_names => columns),
                                                             consistency))
                  end
                else
-                 thrift_cmd = client.get_counter_slice(key,
+                 thrift_cmd = client.get_slice(key,
                                                        CassandraThrift::ColumnParent.new(:column_family => column_family),
                                                        CassandraThrift::SlicePredicate.new(:column_names => columns),
                                                        consistency)

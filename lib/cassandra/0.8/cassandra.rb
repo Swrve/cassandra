@@ -261,7 +261,7 @@ class Cassandra
     column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, READ_DEFAULTS)
     results = {}
     _get_counter_slice(column_family, key, column, options[:start], options[:finish], options[:consistency]).map do |counter|
-      c = counter.column.nil? ? counter.super_column : counter.column
+      c = counter.super_column || counter.column || counter.counter_column
       results[c.name] = c.value
     end
     results
