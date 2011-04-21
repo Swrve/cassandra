@@ -6,7 +6,7 @@
 
 require 'thrift'
 require 'cassandra_types'
-require 'cassandra_constants'
+
     module CassandraThrift
       module Cassandra
         class Client
@@ -187,6 +187,23 @@ require 'cassandra_constants'
             return
           end
 
+          def add(key, column_parent, column, consistency_level)
+            send_add(key, column_parent, column, consistency_level)
+            recv_add()
+          end
+
+          def send_add(key, column_parent, column, consistency_level)
+            send_message('add', Add_args, :key => key, :column_parent => column_parent, :column => column, :consistency_level => consistency_level)
+          end
+
+          def recv_add()
+            result = receive_message(Add_result)
+            raise result.ire unless result.ire.nil?
+            raise result.ue unless result.ue.nil?
+            raise result.te unless result.te.nil?
+            return
+          end
+
           def remove(key, column_path, timestamp, consistency_level)
             send_remove(key, column_path, timestamp, consistency_level)
             recv_remove()
@@ -198,6 +215,23 @@ require 'cassandra_constants'
 
           def recv_remove()
             result = receive_message(Remove_result)
+            raise result.ire unless result.ire.nil?
+            raise result.ue unless result.ue.nil?
+            raise result.te unless result.te.nil?
+            return
+          end
+
+          def remove_counter(key, path, consistency_level)
+            send_remove_counter(key, path, consistency_level)
+            recv_remove_counter()
+          end
+
+          def send_remove_counter(key, path, consistency_level)
+            send_message('remove_counter', Remove_counter_args, :key => key, :path => path, :consistency_level => consistency_level)
+          end
+
+          def recv_remove_counter()
+            result = receive_message(Remove_counter_result)
             raise result.ire unless result.ire.nil?
             raise result.ue unless result.ue.nil?
             raise result.te unless result.te.nil?
@@ -234,112 +268,6 @@ require 'cassandra_constants'
             result = receive_message(Truncate_result)
             raise result.ire unless result.ire.nil?
             raise result.ue unless result.ue.nil?
-            return
-          end
-
-          def add(key, column_parent, column, consistency_level)
-            send_add(key, column_parent, column, consistency_level)
-            recv_add()
-          end
-
-          def send_add(key, column_parent, column, consistency_level)
-            send_message('add', Add_args, :key => key, :column_parent => column_parent, :column => column, :consistency_level => consistency_level)
-          end
-
-          def recv_add()
-            result = receive_message(Add_result)
-            raise result.ire unless result.ire.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
-            return
-          end
-
-          def batch_add(update_map, consistency_level)
-            send_batch_add(update_map, consistency_level)
-            recv_batch_add()
-          end
-
-          def send_batch_add(update_map, consistency_level)
-            send_message('batch_add', Batch_add_args, :update_map => update_map, :consistency_level => consistency_level)
-          end
-
-          def recv_batch_add()
-            result = receive_message(Batch_add_result)
-            raise result.ire unless result.ire.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
-            return
-          end
-
-          def get_counter(key, path, consistency_level)
-            send_get_counter(key, path, consistency_level)
-            return recv_get_counter()
-          end
-
-          def send_get_counter(key, path, consistency_level)
-            send_message('get_counter', Get_counter_args, :key => key, :path => path, :consistency_level => consistency_level)
-          end
-
-          def recv_get_counter()
-            result = receive_message(Get_counter_result)
-            return result.success unless result.success.nil?
-            raise result.ire unless result.ire.nil?
-            return nil unless result.nfe.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
-            raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_counter failed: unknown result')
-          end
-
-          def get_counter_slice(key, column_parent, predicate, consistency_level)
-            send_get_counter_slice(key, column_parent, predicate, consistency_level)
-            return recv_get_counter_slice()
-          end
-
-          def send_get_counter_slice(key, column_parent, predicate, consistency_level)
-            send_message('get_counter_slice', Get_counter_slice_args, :key => key, :column_parent => column_parent, :predicate => predicate, :consistency_level => consistency_level)
-          end
-
-          def recv_get_counter_slice()
-            result = receive_message(Get_counter_slice_result)
-            return result.success unless result.success.nil?
-            raise result.ire unless result.ire.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
-            raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'get_counter_slice failed: unknown result')
-          end
-
-          def multiget_counter_slice(keys, column_parent, predicate, consistency_level)
-            send_multiget_counter_slice(keys, column_parent, predicate, consistency_level)
-            return recv_multiget_counter_slice()
-          end
-
-          def send_multiget_counter_slice(keys, column_parent, predicate, consistency_level)
-            send_message('multiget_counter_slice', Multiget_counter_slice_args, :keys => keys, :column_parent => column_parent, :predicate => predicate, :consistency_level => consistency_level)
-          end
-
-          def recv_multiget_counter_slice()
-            result = receive_message(Multiget_counter_slice_result)
-            return result.success unless result.success.nil?
-            raise result.ire unless result.ire.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
-            raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'multiget_counter_slice failed: unknown result')
-          end
-
-          def remove_counter(key, path, consistency_level)
-            send_remove_counter(key, path, consistency_level)
-            recv_remove_counter()
-          end
-
-          def send_remove_counter(key, path, consistency_level)
-            send_message('remove_counter', Remove_counter_args, :key => key, :path => path, :consistency_level => consistency_level)
-          end
-
-          def recv_remove_counter()
-            result = receive_message(Remove_counter_result)
-            raise result.ire unless result.ire.nil?
-            raise result.ue unless result.ue.nil?
-            raise result.te unless result.te.nil?
             return
           end
 
@@ -756,6 +684,21 @@ require 'cassandra_constants'
             write_result(result, oprot, 'insert', seqid)
           end
 
+          def process_add(seqid, iprot, oprot)
+            args = read_args(iprot, Add_args)
+            result = Add_result.new()
+            begin
+              @handler.add(args.key, args.column_parent, args.column, args.consistency_level)
+            rescue CassandraThrift::InvalidRequestException => ire
+              result.ire = ire
+            rescue CassandraThrift::UnavailableException => ue
+              result.ue = ue
+            rescue CassandraThrift::TimedOutException => te
+              result.te = te
+            end
+            write_result(result, oprot, 'add', seqid)
+          end
+
           def process_remove(seqid, iprot, oprot)
             args = read_args(iprot, Remove_args)
             result = Remove_result.new()
@@ -769,6 +712,21 @@ require 'cassandra_constants'
               result.te = te
             end
             write_result(result, oprot, 'remove', seqid)
+          end
+
+          def process_remove_counter(seqid, iprot, oprot)
+            args = read_args(iprot, Remove_counter_args)
+            result = Remove_counter_result.new()
+            begin
+              @handler.remove_counter(args.key, args.path, args.consistency_level)
+            rescue CassandraThrift::InvalidRequestException => ire
+              result.ire = ire
+            rescue CassandraThrift::UnavailableException => ue
+              result.ue = ue
+            rescue CassandraThrift::TimedOutException => te
+              result.te = te
+            end
+            write_result(result, oprot, 'remove_counter', seqid)
           end
 
           def process_batch_mutate(seqid, iprot, oprot)
@@ -797,98 +755,6 @@ require 'cassandra_constants'
               result.ue = ue
             end
             write_result(result, oprot, 'truncate', seqid)
-          end
-
-          def process_add(seqid, iprot, oprot)
-            args = read_args(iprot, Add_args)
-            result = Add_result.new()
-            begin
-              @handler.add(args.key, args.column_parent, args.column, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'add', seqid)
-          end
-
-          def process_batch_add(seqid, iprot, oprot)
-            args = read_args(iprot, Batch_add_args)
-            result = Batch_add_result.new()
-            begin
-              @handler.batch_add(args.update_map, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'batch_add', seqid)
-          end
-
-          def process_get_counter(seqid, iprot, oprot)
-            args = read_args(iprot, Get_counter_args)
-            result = Get_counter_result.new()
-            begin
-              result.success = @handler.get_counter(args.key, args.path, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::NotFoundException => nfe
-              result.nfe = nfe
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'get_counter', seqid)
-          end
-
-          def process_get_counter_slice(seqid, iprot, oprot)
-            args = read_args(iprot, Get_counter_slice_args)
-            result = Get_counter_slice_result.new()
-            begin
-              result.success = @handler.get_counter_slice(args.key, args.column_parent, args.predicate, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'get_counter_slice', seqid)
-          end
-
-          def process_multiget_counter_slice(seqid, iprot, oprot)
-            args = read_args(iprot, Multiget_counter_slice_args)
-            result = Multiget_counter_slice_result.new()
-            begin
-              result.success = @handler.multiget_counter_slice(args.keys, args.column_parent, args.predicate, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'multiget_counter_slice', seqid)
-          end
-
-          def process_remove_counter(seqid, iprot, oprot)
-            args = read_args(iprot, Remove_counter_args)
-            result = Remove_counter_result.new()
-            begin
-              @handler.remove_counter(args.key, args.path, args.consistency_level)
-            rescue CassandraThrift::InvalidRequestException => ire
-              result.ire = ire
-            rescue CassandraThrift::UnavailableException => ue
-              result.ue = ue
-            rescue CassandraThrift::TimedOutException => te
-              result.te = te
-            end
-            write_result(result, oprot, 'remove_counter', seqid)
           end
 
           def process_describe_schema_versions(seqid, iprot, oprot)
@@ -1548,6 +1414,55 @@ require 'cassandra_constants'
           ::Thrift::Struct.generate_accessors self
         end
 
+        class Add_args
+          include ::Thrift::Struct, ::Thrift::Struct_Union
+          KEY = 1
+          COLUMN_PARENT = 2
+          COLUMN = 3
+          CONSISTENCY_LEVEL = 4
+
+          FIELDS = {
+            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
+            COLUMN_PARENT => {:type => ::Thrift::Types::STRUCT, :name => 'column_parent', :class => CassandraThrift::ColumnParent},
+            COLUMN => {:type => ::Thrift::Types::STRUCT, :name => 'column', :class => CassandraThrift::CounterColumn},
+            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
+          }
+
+          def struct_fields; FIELDS; end
+
+          def validate
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column_parent is unset!') unless @column_parent
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column is unset!') unless @column
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
+            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
+              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
+            end
+          end
+
+          ::Thrift::Struct.generate_accessors self
+        end
+
+        class Add_result
+          include ::Thrift::Struct, ::Thrift::Struct_Union
+          IRE = 1
+          UE = 2
+          TE = 3
+
+          FIELDS = {
+            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
+            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
+            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
+          }
+
+          def struct_fields; FIELDS; end
+
+          def validate
+          end
+
+          ::Thrift::Struct.generate_accessors self
+        end
+
         class Remove_args
           include ::Thrift::Struct, ::Thrift::Struct_Union
           KEY = 1
@@ -1577,6 +1492,52 @@ require 'cassandra_constants'
         end
 
         class Remove_result
+          include ::Thrift::Struct, ::Thrift::Struct_Union
+          IRE = 1
+          UE = 2
+          TE = 3
+
+          FIELDS = {
+            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
+            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
+            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
+          }
+
+          def struct_fields; FIELDS; end
+
+          def validate
+          end
+
+          ::Thrift::Struct.generate_accessors self
+        end
+
+        class Remove_counter_args
+          include ::Thrift::Struct, ::Thrift::Struct_Union
+          KEY = 1
+          PATH = 2
+          CONSISTENCY_LEVEL = 3
+
+          FIELDS = {
+            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
+            PATH => {:type => ::Thrift::Types::STRUCT, :name => 'path', :class => CassandraThrift::ColumnPath},
+            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
+          }
+
+          def struct_fields; FIELDS; end
+
+          def validate
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field path is unset!') unless @path
+            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
+            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
+              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
+            end
+          end
+
+          ::Thrift::Struct.generate_accessors self
+        end
+
+        class Remove_counter_result
           include ::Thrift::Struct, ::Thrift::Struct_Union
           IRE = 1
           UE = 2
@@ -1664,296 +1625,6 @@ require 'cassandra_constants'
           FIELDS = {
             IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
             UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Add_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          KEY = 1
-          COLUMN_PARENT = 2
-          COLUMN = 3
-          CONSISTENCY_LEVEL = 4
-
-          FIELDS = {
-            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
-            COLUMN_PARENT => {:type => ::Thrift::Types::STRUCT, :name => 'column_parent', :class => CassandraThrift::ColumnParent},
-            COLUMN => {:type => ::Thrift::Types::STRUCT, :name => 'column', :class => CassandraThrift::CounterColumn},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column_parent is unset!') unless @column_parent
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column is unset!') unless @column
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Add_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          IRE = 1
-          UE = 2
-          TE = 3
-
-          FIELDS = {
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Batch_add_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          UPDATE_MAP = 1
-          CONSISTENCY_LEVEL = 2
-
-          FIELDS = {
-            UPDATE_MAP => {:type => ::Thrift::Types::MAP, :name => 'update_map', :key => {:type => ::Thrift::Types::STRING, :binary => true}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::LIST, :element => {:type => ::Thrift::Types::STRUCT, :class => CassandraThrift::CounterMutation}}}},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field update_map is unset!') unless @update_map
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Batch_add_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          IRE = 1
-          UE = 2
-          TE = 3
-
-          FIELDS = {
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Get_counter_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          KEY = 1
-          PATH = 2
-          CONSISTENCY_LEVEL = 3
-
-          FIELDS = {
-            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
-            PATH => {:type => ::Thrift::Types::STRUCT, :name => 'path', :class => CassandraThrift::ColumnPath},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field path is unset!') unless @path
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Get_counter_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          SUCCESS = 0
-          IRE = 1
-          NFE = 2
-          UE = 3
-          TE = 4
-
-          FIELDS = {
-            SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => CassandraThrift::Counter},
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            NFE => {:type => ::Thrift::Types::STRUCT, :name => 'nfe', :class => CassandraThrift::NotFoundException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Get_counter_slice_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          KEY = 1
-          COLUMN_PARENT = 2
-          PREDICATE = 3
-          CONSISTENCY_LEVEL = 4
-
-          FIELDS = {
-            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
-            COLUMN_PARENT => {:type => ::Thrift::Types::STRUCT, :name => 'column_parent', :class => CassandraThrift::ColumnParent},
-            PREDICATE => {:type => ::Thrift::Types::STRUCT, :name => 'predicate', :class => CassandraThrift::SlicePredicate},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column_parent is unset!') unless @column_parent
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field predicate is unset!') unless @predicate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Get_counter_slice_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          SUCCESS = 0
-          IRE = 1
-          UE = 2
-          TE = 3
-
-          FIELDS = {
-            SUCCESS => {:type => ::Thrift::Types::LIST, :name => 'success', :element => {:type => ::Thrift::Types::STRUCT, :class => CassandraThrift::Counter}},
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Multiget_counter_slice_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          KEYS = 1
-          COLUMN_PARENT = 2
-          PREDICATE = 3
-          CONSISTENCY_LEVEL = 4
-
-          FIELDS = {
-            KEYS => {:type => ::Thrift::Types::LIST, :name => 'keys', :element => {:type => ::Thrift::Types::STRING, :binary => true}},
-            COLUMN_PARENT => {:type => ::Thrift::Types::STRUCT, :name => 'column_parent', :class => CassandraThrift::ColumnParent},
-            PREDICATE => {:type => ::Thrift::Types::STRUCT, :name => 'predicate', :class => CassandraThrift::SlicePredicate},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field keys is unset!') unless @keys
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field column_parent is unset!') unless @column_parent
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field predicate is unset!') unless @predicate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Multiget_counter_slice_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          SUCCESS = 0
-          IRE = 1
-          UE = 2
-          TE = 3
-
-          FIELDS = {
-            SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING, :binary => true}, :value => {:type => ::Thrift::Types::LIST, :element => {:type => ::Thrift::Types::STRUCT, :class => CassandraThrift::Counter}}},
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Remove_counter_args
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          KEY = 1
-          PATH = 2
-          CONSISTENCY_LEVEL = 3
-
-          FIELDS = {
-            KEY => {:type => ::Thrift::Types::STRING, :name => 'key', :binary => true},
-            PATH => {:type => ::Thrift::Types::STRUCT, :name => 'path', :class => CassandraThrift::ColumnPath},
-            CONSISTENCY_LEVEL => {:type => ::Thrift::Types::I32, :name => 'consistency_level', :default =>             1, :enum_class => CassandraThrift::ConsistencyLevel}
-          }
-
-          def struct_fields; FIELDS; end
-
-          def validate
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field key is unset!') unless @key
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field path is unset!') unless @path
-            raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Required field consistency_level is unset!') unless @consistency_level
-            unless @consistency_level.nil? || CassandraThrift::ConsistencyLevel::VALID_VALUES.include?(@consistency_level)
-              raise ::Thrift::ProtocolException.new(::Thrift::ProtocolException::UNKNOWN, 'Invalid value of field consistency_level!')
-            end
-          end
-
-          ::Thrift::Struct.generate_accessors self
-        end
-
-        class Remove_counter_result
-          include ::Thrift::Struct, ::Thrift::Struct_Union
-          IRE = 1
-          UE = 2
-          TE = 3
-
-          FIELDS = {
-            IRE => {:type => ::Thrift::Types::STRUCT, :name => 'ire', :class => CassandraThrift::InvalidRequestException},
-            UE => {:type => ::Thrift::Types::STRUCT, :name => 'ue', :class => CassandraThrift::UnavailableException},
-            TE => {:type => ::Thrift::Types::STRUCT, :name => 'te', :class => CassandraThrift::TimedOutException}
           }
 
           def struct_fields; FIELDS; end
