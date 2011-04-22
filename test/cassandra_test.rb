@@ -5,7 +5,7 @@ def cassandra06?
 end
 
 def cassandra08?
-  CassandraThrift::VERSION == '19.4.0'
+  CassandraThrift::VERSION == '19.10.0'
 end
 
 class CassandraTest < Test::Unit::TestCase
@@ -430,37 +430,10 @@ class CassandraTest < Test::Unit::TestCase
     @twitter.insert(:Statuses, key, { 'body' => '1' })
   end
 
-  unless cassandra06?
-    def test_creating_and_dropping_new_index
-      assert_not_nil @twitter.create_index('Twitter', 'Statuses', 'column_name', 'LongType')
-      assert_nil @twitter.create_index('Twitter', 'Statuses', 'column_name', 'LongType') #trying to create the same index twice
-
-      assert_not_nil @twitter.drop_index('Twitter', 'Statuses', 'column_name')
-      assert_nil @twitter.drop_index('Twitter', 'Statuses', 'column_name') # Trying to drop the same index multiple times
-
-      # Recreating and redropping the same index should not error either.
-      assert_not_nil @twitter.create_index('Twitter', 'Statuses', 'column_name', 'LongType')
-      assert_not_nil @twitter.drop_index('Twitter', 'Statuses', 'column_name')
-    end
-
-    def test_get_indexed_slices
-      assert_not_nil @twitter.create_index('Twitter', 'Statuses', 'x', 'LongType')
-
-      @twitter.insert(:Statuses, 'row1', { 'x' => [0,10].pack("NN")  })
-      @twitter.insert(:Statuses, 'row2', { 'x' => [0,20].pack("NN")  })
-
-      idx_expr   = @twitter.create_idx_expr('x', [0,20].pack("NN"), "==")
-      idx_clause = @twitter.create_idx_clause([idx_expr])
-
-      indexed_row = @twitter.get_indexed_slices(:Statuses, idx_clause)
-      assert_equal(1,      indexed_row.length)
-      assert_equal('row2', indexed_row.first.key)
-      assert_not_nil @twitter.drop_index('Twitter', 'Statuses', 'x')
-    end
-  end
 
   if cassandra08?
     def test_adding_getting_value_in_counter
+      puts "Interesting"
       assert_nil @twitter.add(:UserCounters, 'bob', 5, 'tweet_count')
       assert_equal(5, @twitter.get_counter(:UserCounters, 'bob', 'tweet_count'))
       assert_equal(0, @twitter.get_counter(:UserCounters, 'bogus', 'tweet_count'))
