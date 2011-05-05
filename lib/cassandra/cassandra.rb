@@ -151,8 +151,7 @@ class Cassandra
   end
   
   # _mutate the element at the column_family:key:[column]:[sub_column]
-  # path you request. Supports the <tt>:consistency</tt> and <tt>:timestamp</tt>
-  # options.
+  # path you request. Supports the <tt>:consistency</tt> options.
   def remove_counter(column_family, key, *columns_and_options)
     column_family, column, sub_column, options = extract_and_validate_params(column_family, key, columns_and_options, WRITE_DEFAULTS)
 
@@ -160,7 +159,7 @@ class Cassandra
     columns = is_super(column_family) ? {:super_column => column, :column => sub_column} : {:column => column}
     column_path = CassandraThrift::ColumnPath.new(args.merge(columns))
 
-    mutation = [:remove_counter, [key, column_path, options[:timestamp] || Time.stamp, options[:consistency]]]
+    mutation = [:remove_counter, [key, column_path, options[:consistency]]]
 
     @batch ? @batch << mutation : _remove_counter(*mutation[1])
   end
