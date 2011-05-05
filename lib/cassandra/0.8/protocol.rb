@@ -11,6 +11,10 @@ class Cassandra
     def _remove(key, column_path, timestamp, consistency_level)
       client.remove(key, column_path, timestamp, consistency_level)
     end
+    
+    def _remove_counter(key, column_path, timestamp, consistency_level)
+      client.remove_counter(key, column_path, timestamp, consistency_level)
+    end
 
     def _add(column_family, key, column, sub_column, value, consistency)
       if is_super(column_family)
